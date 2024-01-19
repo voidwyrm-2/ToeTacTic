@@ -1,7 +1,7 @@
 import pygame
 from random import randint
 
-
+raise SystemExit()
 
 def limit(input, max):
     if input > max: return max
@@ -31,19 +31,13 @@ credfont = pygame.font.Font('freesansbold.ttf', 16)
 mainfont = pygame.font.Font('freesansbold.ttf', 32)
 tictacfont = pygame.font.Font('freesansbold.ttf', 70)
 
-DEBUG = [False, False, False, False, False, False] #showNumber, fillAll, disableAI, cantWin, showWinLists, dontBlackOut
-
-shownumbers = True
-
-multiplayer = True
+DEBUG = [False, False, False, False, True] #showNumber, fillAll, disableAI, cantWin, showWinLists
 
 stopcontrol = False
 
 playerturn = True
 player = 'o'
 enemy = 'x'
-
-playerwon = False
 
 px = [0,0,0]
 py = [0,0,0]
@@ -52,10 +46,6 @@ pxy = [0,0]
 ex = [0,0,0]
 ey = [0,0,0]
 exy = [0,0]
-
-cansaylost = True
-cansaywon = True
-cansaytied = True
 
 livetictacs = [] #looks like (0, 'o', True) #(POS, 'o'/'x', ISPLAYER)
 
@@ -76,7 +66,7 @@ tictacpos = [
 if DEBUG[1]:
     for itic in range(9): livetictacs.append((itic, '0', True))
 
-def addp1tictac(index: int, beingplaced: str):
+def addtictac(index: int, beingplaced: str):
     global livetictacs
     global playerturn
     global DEBUG
@@ -92,22 +82,38 @@ def addp1tictac(index: int, beingplaced: str):
             livetictacs.append((index, beingplaced, playerturn))
             if not DEBUG[2]: playerturn = False
 
-def addp2tictac(index: int, beingplaced: str):
-    global livetictacs
-    global playerturn
-    global DEBUG
-    if len(livetictacs) >= 9: return
-    if len(livetictacs) <= 0:
-        livetictacs.append((index, beingplaced, playerturn))
-        if not DEBUG[2]: playerturn = True
-    else:
-        canplace = True
-        for tic in livetictacs:
-            if tic[0] == index: canplace = False; break
-        if canplace:
-            livetictacs.append((index, beingplaced, playerturn))
-            if not DEBUG[2]: playerturn = True
 
+def threemapX(input):
+    if input == 0 or input == 1 or input == 2: return 0
+    elif input == 3 or input == 4 or input == 5: return 1
+    elif input == 6 or input == 7 or input == 8 or input == 9: return 2
+    return -1
+def threemapY(input):
+    if input == 0 or input == 3 or input == 6: return 3
+    elif input == 3 or input == 4 or input == 5: return 4
+    elif input == 6 or input == 7 or input == 8 or input == 9: return 5
+    return -1
+
+def isplayerclose():
+    global px
+    global py
+    global pxy
+    ipx = 0
+    for pc in px:
+        if pc >= 2: return threemapX(ipy)
+        ipx += 1
+
+    ipy = 0
+    for pc in px:
+        if pc >= 2: return threemapY(ipy)
+        ipy += 1
+
+    #ipxy = 0
+    #for pc in px:
+        #if pc >= 2: return (ipxy)
+        #ipxy += 1
+
+    return None
 
 def aiaddtictac():
     global livetictacs
@@ -118,11 +124,30 @@ def aiaddtictac():
     if len(livetictacs) <= 0: livetictacs.append((aiindex, enemy, playerturn)); playerturn = True
     else:
         canplace = True
+        closetowin = isplayerclose()
+        willblockchance = randint(0, 100)
         while True:
             for tic in livetictacs:
                 if tic[0] == aiindex: canplace = False; break
             if canplace: livetictacs.append((aiindex, enemy, playerturn)); playerturn = True; break
-            else: print(f'"o" already on {aiindex}! ai rerolling...'); canplace = True; aiindex = randint(0, 8)
+            else:
+                print(f'"o" already on {aiindex}! ai rerolling...')
+                canplace = True
+                if willblockchance > 40 and closetowin != None:
+                    ys = [0,3,6, 1,4,7, 2,5,8]
+                    if closetowin == 0: aiindex = randint(0, 2)
+                    elif closetowin == 1: aiindex = randint(3, 5)
+                    elif closetowin == 2: aiindex = randint(6, 8)
+                    elif closetowin == 3: aiindex = ys[randint(0, 2)]
+                    elif closetowin == 4: aiindex = ys[randint(3, 5)]
+                    elif closetowin == 5: aiindex = ys[randint(6, 8)]
+                    #elif closetowin == 6: aiindex = randint()
+                    #elif closetowin == 7: aiindex = randint()
+                    #elif closetowin == 8: aiindex = randint()
+                    elif closetowin == -1: print('whaaat? closetowin is -1(broken), how did that happen?'); raise SystemExit()
+                    else: print('whaaat? closetowin is not anything????, how did that happen?'); raise SystemExit()
+                else: aiindex = randint(0, 8)
+
 
 def drawgrid():
     global windratio
@@ -140,11 +165,8 @@ def drawgrid():
 
 def drawturn(x, y):
     global playerturn
-    global multiplayer
     turn = mainfont.render('currently Player turn', True, (255, 255, 255))
-    if multiplayer: turn = mainfont.render('currently Player 1 turn', True, (255, 255, 255))
-    if not playerturn and not multiplayer: turn = mainfont.render('currently AI turn', True, (255, 255, 255))
-    if not playerturn and multiplayer: turn = mainfont.render('currently Player 2 turn', True, (255, 255, 255))
+    if not playerturn: turn = mainfont.render('currently AI turn', True, (255, 255, 255))
     screen.blit(turn, (x, y))
 
 def drawtictacs():
@@ -163,95 +185,54 @@ def drawnumbers():
         screen.blit(ind, (tac[0] + 15, tac[1] + 35))
         tti += 1
 
-def drawtruenumbers():
-    tti = 1
-    for tac in tictacpos:
-        ind = mainfont.render(str(tti), True, (200, 200, 200))
-        screen.blit(ind, (tac[0] + 15, tac[1] + 35))
-        tti += 1
-
 def drawwinlists(x, y):
     global px
     global py
     global pxy
-    global wx
-    global wy
-    global wxy
     one = credfont.render(f'px:{px}', True, (255, 255, 255))
     screen.blit(one, (x, y))
-    two = credfont.render(f'py:{py}', True, (255, 255, 255))
+    two = credfont.render(f'px:{py}', True, (255, 255, 255))
     screen.blit(two, (x, y + 19))
-    three = credfont.render(f'pxy:{pxy}', True, (255, 255, 255))
-    screen.blit(three, (x, y + (19 * 2)))
-
-    four = credfont.render(f'ex:{ex}', True, (255, 255, 255))
-    screen.blit(four, (x, y + (19 * 3)))
-    five = credfont.render(f'ey:{ey}', True, (255, 255, 255))
-    screen.blit(five, (x, y + (19 * 4)))
-    six = credfont.render(f'exy:{exy}', True, (255, 255, 255))
-    screen.blit(six, (x, y + 19 * 5))
+    two = credfont.render(f'px:{pxy}', True, (255, 255, 255))
+    screen.blit(two, (x, y + 38))
 
 
 def credits(x, y):
     creds = credfont.render('A game by Nuclear Pasta', True, (255, 255, 255))
-    #screen.blit(creds, (x + 60, y + 30))
-    screen.blit(creds, (0, 0))
+    screen.blit(creds, (x + 50, y + 30))
 
 
 def lose(x, y):
     global stopcontrol
-    global cansaylost
-    global multiplayer
     stopcontrol = True
     loss = mainfont.render('You lost! womp womp', True, (255, 255, 255))
-    if multiplayer: loss = mainfont.render('Player 2 won! yaaaay!', True, (255, 255, 255))
     screen.blit(loss, (x, y))
     credits(x, y)
-    if cansaylost: print('Player 1 lost!'); cansaylost = False
 
 def win(x, y):
     global stopcontrol
-    global cansaywon
-    global multiplayer
     stopcontrol = True
     won = mainfont.render('You won! wooooo!', True, (255, 255, 255))
-    if multiplayer: won = mainfont.render('Player 1 won! wooooo!', True, (255, 255, 255))
     screen.blit(won, (x + 10, y))
     credits(x, y)
-    if cansaywon: print('Player 1 won!'); cansaywon = False
 
 def tie(x, y):
     global stopcontrol
-    global cansaytied
-    global multiplayer
     stopcontrol = True
     tied = mainfont.render('Twas but a tie', True, (255, 255, 255))
     screen.blit(tied, (x + 10, y))
     credits(x, y)
-    if cansaytied and not multiplayer: print('Player and AI tied!'); cansaytied = False
-    elif cansaytied and multiplayer: print('Player 1 and Player 2 tied!'); cansaytied = False
 
 def checkforwin():
     global livetictacs
     global playerturn
     global stopcontrol
-    global playerwon
-    global multiplayer
-
     global px
     global py
     global pxy
     global ex
     global ey
     global exy
-
-    px = [0,0,0]
-    py = [0,0,0]
-    pxy = [0,0]
-
-    ex = [0,0,0]
-    ey = [0,0,0]
-    exy = [0,0]
 
 
     for toe in livetictacs:
@@ -313,13 +294,13 @@ def checkforwin():
     endingsX = 90
     endingsY = 250
     for pxc in px:
-        if pxc == 3: stopcontrol = True; win(endingsX, endingsY); playerwon = True; break; return
+        if pxc == 3: stopcontrol = True; win(endingsX, endingsY); break; return
     for pyc in py:
-        if pyc == 3: stopcontrol = True; win(endingsX, endingsY); playerwon = True; break; return
+        if pyc == 3: stopcontrol = True; win(endingsX, endingsY); break; return
     for pxyc in pxy:
-        if pxyc == 3: stopcontrol = True; win(endingsX, endingsY); playerwon = True; break; return
+        if pxyc == 3: stopcontrol = True; win(endingsX, endingsY); break; return
     
-    if playerwon: return
+    if stopcontrol: return
 
     for exc in ex:
         if exc == 3: lose(endingsX, endingsY); break; return
@@ -328,19 +309,7 @@ def checkforwin():
     for exyc in exy:
         if exyc == 3: lose(endingsX, endingsY); break; return
 
-    if not playerturn and not multiplayer: tie(endingsX, endingsY); return
-    else:
-        axiscounter = 0
-        for i in px: axiscounter += i
-        for i in py: axiscounter += i
-        for i in pxy: axiscounter += i
-
-        for i in ex: axiscounter += i
-        for i in ey: axiscounter += i
-        for i in exy: axiscounter += i
-
-        #print(f'counted it up, got {axiscounter}!')
-        if axiscounter == 23: tie(endingsX, endingsY); return
+    if not playerturn: tie(endingsX, endingsY); return
 
 
 
@@ -358,56 +327,36 @@ while running:
             #if event.key == pygame.K_x and placing == 'o': placing = 'x'
 
             #if event.key == pygame.K_x and placing == 'x': placing = 'o'
-            if playerturn:
-                if event.key == pygame.K_1 and playerturn: addp1tictac(0, player)
+
+            if event.key == pygame.K_1 and playerturn: addtictac(0, player)
             
-                if event.key == pygame.K_2 and playerturn: addp1tictac(1, player)
+            if event.key == pygame.K_2 and playerturn: addtictac(1, player)
 
-                if event.key == pygame.K_3 and playerturn: addp1tictac(2, player)
+            if event.key == pygame.K_3 and playerturn: addtictac(2, player)
 
-                if event.key == pygame.K_4 and playerturn: addp1tictac(3, player)
+            if event.key == pygame.K_4 and playerturn: addtictac(3, player)
 
-                if event.key == pygame.K_5 and playerturn: addp1tictac(4, player)
+            if event.key == pygame.K_5 and playerturn: addtictac(4, player)
 
-                if event.key == pygame.K_6 and playerturn: addp1tictac(5, player)
+            if event.key == pygame.K_6 and playerturn: addtictac(5, player)
 
-                if event.key == pygame.K_7 and playerturn: addp1tictac(6, player)
+            if event.key == pygame.K_7 and playerturn: addtictac(6, player)
 
-                if event.key == pygame.K_8 and playerturn: addp1tictac(7, player)
+            if event.key == pygame.K_8 and playerturn: addtictac(7, player)
 
-                if event.key == pygame.K_9 and playerturn: addp1tictac(8, player)
-            
-            if not playerturn and multiplayer:
-                if event.key == pygame.K_1 and not playerturn: addp2tictac(0, enemy)
-            
-                if event.key == pygame.K_2 and not playerturn: addp2tictac(1, enemy)
-
-                if event.key == pygame.K_3 and not playerturn: addp2tictac(2, enemy)
-
-                if event.key == pygame.K_4 and not playerturn: addp2tictac(3, enemy)
-
-                if event.key == pygame.K_5 and not playerturn: addp2tictac(4, enemy)
-
-                if event.key == pygame.K_6 and not playerturn: addp2tictac(5, enemy)
-
-                if event.key == pygame.K_7 and not playerturn: addp2tictac(6, enemy)
-
-                if event.key == pygame.K_8 and not playerturn: addp2tictac(7, enemy)
-
-                if event.key == pygame.K_9 and not playerturn: addp2tictac(8, enemy)
+            if event.key == pygame.K_9 and playerturn: addtictac(8, player)
 
 
-    if not playerturn and not multiplayer and not stopcontrol and not DEBUG[2]: aiaddtictac()
+    if not playerturn and not stopcontrol and not DEBUG[2]: aiaddtictac()
 
     drawturn(0, 0)
 
     drawgrid()
-    if shownumbers: drawtruenumbers()
     drawtictacs()
     if DEBUG[0]: drawnumbers()
     if DEBUG[4]: drawwinlists(0, 35)
 
-    if stopcontrol and not DEBUG[5]: screen.fill((0, 0, 0))
+    #if stopcontrol: screen.fill((0, 0, 0))
 
     if not DEBUG[3]: checkforwin()
 
