@@ -35,7 +35,7 @@ DEBUG = [False, False, False, False, False, False] #showNumber, fillAll, disable
 
 shownumbers = True
 
-multiplayer = True
+multiplayer = False
 
 stopcontrol = False
 
@@ -328,8 +328,8 @@ def checkforwin():
     for exyc in exy:
         if exyc == 3: lose(endingsX, endingsY); break; return
 
-    if not playerturn and not multiplayer: tie(endingsX, endingsY); return
-    else:
+    #if not playerturn and not multiplayer: tie(endingsX, endingsY); return
+    #else:
         axiscounter = 0
         for i in px: axiscounter += i
         for i in py: axiscounter += i
