@@ -31,7 +31,7 @@ credfont = pygame.font.Font('freesansbold.ttf', 16)
 mainfont = pygame.font.Font('freesansbold.ttf', 32)
 tictacfont = pygame.font.Font('freesansbold.ttf', 70)
 
-DEBUG = [False, False, False, False, False, False] #showNumber, fillAll, disableAI, cantWin, showWinLists, dontBlackOut
+DEBUG = [False, False, False, False, False, False] #showDebugNumbers, fillAll, disableAI, cantWin, showWinLists, dontBlackOut
 
 shownumbers = True
 
@@ -174,9 +174,9 @@ def drawwinlists(x, y):
     global px
     global py
     global pxy
-    global wx
-    global wy
-    global wxy
+    global ex
+    global ey
+    global exy
     one = credfont.render(f'px:{px}', True, (255, 255, 255))
     screen.blit(one, (x, y))
     two = credfont.render(f'py:{py}', True, (255, 255, 255))
