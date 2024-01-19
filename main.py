@@ -32,7 +32,7 @@ credfont = pygame.font.Font('freesansbold.ttf', 16)
 mainfont = pygame.font.Font('freesansbold.ttf', 32)
 tictacfont = pygame.font.Font('freesansbold.ttf', 70)
 
-DEBUG = [True, False, True, True] #showNumber, fillAll, disableAI, cantWin
+DEBUG = [False, False, False, False] #showNumber, fillAll, disableAI, cantWin
 
 stopcontrol = False
 
