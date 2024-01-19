@@ -22,16 +22,15 @@ pygame.display.flip()
 
 # title and icon
 pygame.display.set_caption("ToeTacTic")
-#icon = pygame.image.load('Waypointer-icon(unshaded).png')
-#if shadeicon: icon = pygame.image.load('Waypointer-icon(shaded).png')
-#pygame.display.set_icon(icon)
+icon = pygame.image.load('ToeTacTic-icon.png')
+pygame.display.set_icon(icon)
 
 pygame.font.init()
 credfont = pygame.font.Font('freesansbold.ttf', 16)
 mainfont = pygame.font.Font('freesansbold.ttf', 32)
 tictacfont = pygame.font.Font('freesansbold.ttf', 70)
 
-DEBUG = [False, False, False, False, False, False] #showDebugNumbers, fillAll, disableAI, cantWin, showWinLists, dontBlackOut
+DEBUG = [False, False, False, False, False, False, False] #showDebugNumbers, fillAll, disableAI, cantWin, showWinLists, dontBlackOut, disableAIAndContinue
 
 shownumbers = True
 
@@ -142,10 +141,12 @@ def drawturn(x, y):
     global playerturn
     global multiplayer
     turn = mainfont.render('currently Player turn', True, (255, 255, 255))
-    if multiplayer: turn = mainfont.render('currently Player 1 turn', True, (255, 255, 255))
-    if not playerturn and not multiplayer: turn = mainfont.render('currently AI turn', True, (255, 255, 255))
-    if not playerturn and multiplayer: turn = mainfont.render('currently Player 2 turn', True, (255, 255, 255))
-    screen.blit(turn, (x, y))
+    if playerturn and multiplayer: turn = mainfont.render('currently Player 1 turn', True, (255, 255, 255))
+    elif not playerturn and not multiplayer: turn = mainfont.render('currently AI turn', True, (255, 255, 255))
+    elif not playerturn and multiplayer: turn = mainfont.render('currently Player 2 turn', True, (255, 255, 255))
+    if playerturn and not multiplayer: screen.blit(turn, (x + 25, y))
+    elif (playerturn and multiplayer) or (not playerturn and multiplayer): screen.blit(turn, (x, y))
+    elif not playerturn and not multiplayer: screen.blit(turn, (x + 45, y))
 
 def drawtictacs():
     for tac in livetictacs:
@@ -397,9 +398,9 @@ while running:
                 if event.key == pygame.K_9 and not playerturn: addp2tictac(8, enemy)
 
 
-    if not playerturn and not multiplayer and not stopcontrol and not DEBUG[2]: aiaddtictac()
+    if not playerturn and not multiplayer and not stopcontrol and not DEBUG[2] and not DEBUG[6]: aiaddtictac()
 
-    drawturn(0, 0)
+    drawturn(100, 0)
 
     drawgrid()
     if shownumbers: drawtruenumbers()
