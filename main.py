@@ -121,8 +121,8 @@ def aiaddtictac():
         while True:
             for tic in livetictacs:
                 if tic[0] == aiindex: canplace = False; break
-            if canplace: livetictacs.append((aiindex, enemy, playerturn)); playerturn = True; break
-            else: print(f'"o" already on {aiindex}! ai rerolling...'); canplace = True; aiindex = randint(0, 8)
+            if canplace: livetictacs.append((aiindex, enemy, playerturn)); print(f'placed an {enemy} at {aiindex}'); playerturn = True; break
+            else: print(f'"{enemy}" already on {aiindex}! ai rerolling...'); canplace = True; aiindex = randint(0, 8)
 
 def drawgrid():
     global windratio
@@ -360,7 +360,7 @@ while running:
             #if event.key == pygame.K_x and placing == 'x': placing = 'o'
             if playerturn:
                 if event.key == pygame.K_1 and playerturn: addp1tictac(0, player)
-            
+
                 if event.key == pygame.K_2 and playerturn: addp1tictac(1, player)
 
                 if event.key == pygame.K_3 and playerturn: addp1tictac(2, player)
@@ -376,7 +376,7 @@ while running:
                 if event.key == pygame.K_8 and playerturn: addp1tictac(7, player)
 
                 if event.key == pygame.K_9 and playerturn: addp1tictac(8, player)
-            
+
             if not playerturn and multiplayer:
                 if event.key == pygame.K_1 and not playerturn: addp2tictac(0, enemy)
             
